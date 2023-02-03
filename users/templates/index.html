@@ -1,0 +1,30 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block box %}
+    <div class="col align-items-md-stretch">
+        {% for event in events %}
+            <div class="row-md-6 p-2">
+                <div class="p-4 ps-5 pe-5 text-bg-dark rounded-3">
+                    <h2>{{ event }}</h2>
+                    <h6>{{ event.room }}</h6>
+                    <p>{{ event.description }}</p>
+                    <a class="btn btn-outline-info" href="{% url 'book_event' name=event %}">Book a place</a>
+                    {% if user.is_staff %}
+                        <a class="btn btn-danger" href="{% url 'cancel_event' name=event %}">Cancel event</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="w-25 text-center" style="margin:auto; margin-top:10%">
+                <div class="row"><h3>There are not events yet</h3></div>
+                {% if user.is_staff %}
+                    <div class="row"><a class="btn btn-lg btn-outline-primary" href="{% url 'add_event' %}">Create new event</a></div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

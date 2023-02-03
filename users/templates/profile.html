@@ -1,0 +1,32 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block box %}
+    <div class="row row-cols-1 row-cols-md-3 text-center">
+        {% for attend in events %}
+            <div class="col mb-4">
+                <div class="card h-100 rounded-3 shadow-sm">
+                    <div class="card-header py-3">
+                        <h4 class="my-0 fw-normal">{{ attend.event }}</h4>
+                        {{ attend.event.room }}
+                    </div>
+                    <div class="card-body">
+                        <p>{{ attend.event.description|truncatechars:350 }}</p>
+                        <div class="row ps-2 pe-2">
+                            <a class="col me-2 btn btn-lg btn-outline-primary" href="{% url 'details' name=attend %}">Details</a>
+                            <a class="col btn btn-lg btn-outline-danger" href="{% url 'cancel_subscription' name=attend %}">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="w-25 text-center" style="margin:auto; margin-top:10%">
+                <div class="row"><h3>You do not have events booked</h3></div>
+                <div class="row"><a class="btn btn-lg btn-outline-primary" href="{% url 'home' %}">Go to events</a></div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

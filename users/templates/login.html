@@ -1,0 +1,22 @@
+{% extends 'layouts/auth_base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block box %}
+    <form action="" method="POST">
+        {% csrf_token %}
+        <img class="mb-4" src="{% static 'img/logo.png' %}" alt="" height="57">
+        <h1 class="h3 mb-3 fw-normal">Enter your information</h1>
+        {% for item in form %}
+            <div class="form-floating">
+                {{ item }}
+                <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+            </div>
+        {% endfor %}
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Log in</button>
+        <div class="mt-5"><a class="text-muted" href="{% url 'sing_in' %}">New? Sing up here</a></div>
+    </form>
+{% endblock %}
