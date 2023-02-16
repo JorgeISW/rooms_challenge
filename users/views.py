@@ -43,17 +43,37 @@ def get_user_events(user):
 
 
 ##########################
+###  Auth decorators   ###
+##########################
+def require_authentication(func):
+    def decorator(*args, **kwargs):
+        # request = args[0]
+        if args[0].user.is_authenticated:
+            return func(*args, **kwargs)
+        else:
+            return redirect('login')
+    return decorator
+
+
+def require_staff_status(msg):
+    def check_staff_status(func):
+        def decorator(*args, **kwargs):
+            request = args[0]
+            if request.user.is_staff:
+                return func(*args, **kwargs)
+            else:
+                messages.error(request, msg)
+                return redirect('home')
+        return decorator
+    return check_staff_status
+
+
+##########################
 ### Template functions ###
 ##########################
-
+@require_authentication
+@require_staff_status('You do not have permissions to delete rooms')
 def delete_room(request, name):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not request.user.is_staff:
-        messages.error(request, 'You do not have permissions to delete rooms')
-        return redirect('home')
-
     room = RoomModel.objects.get(name=name)
     events = len(room.get_events())
     if events < 1:
@@ -65,14 +85,9 @@ def delete_room(request, name):
     return redirect('rooms')
 
 
+@require_authentication
+@require_staff_status('You do not have permissions to cancel events')
 def cancel_event(request, name):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not request.user.is_staff:
-        messages.error(request, 'You do not have permissions to cancel events')
-        return redirect('home')
-
     event = get_event(name)
     event.delete()
 
@@ -80,10 +95,8 @@ def cancel_event(request, name):
     return redirect('home')
 
 
+@require_authentication
 def cancel_subscription(request, name):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
     user = request.user
     event = get_event(name)
     attend = AttendantModel.objects.get(user=user, event=event)
@@ -93,10 +106,8 @@ def cancel_subscription(request, name):
     return redirect('profile')
 
 
+@require_authentication
 def book_event(request, name):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
     user = request.user
     event = get_event(name)
 
@@ -115,13 +126,9 @@ def book_event(request, name):
 ######################
 ### Template views ###
 ######################
-
+@require_authentication
 def home(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
     user = request.user
-
     events = get_events() if user.is_staff else get_public_events()
     context = {
         'user': user,
@@ -131,10 +138,8 @@ def home(request):
     return render(request, 'index.html', context)
 
 
+@require_authentication
 def profile(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
     user = request.user
     context = {
         'user': user,
@@ -144,10 +149,8 @@ def profile(request):
     return render(request, 'profile.html', context)
 
 
+@require_authentication
 def event_details(request, name):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
     user = request.user
     event = get_event(name)
     context = {
@@ -158,14 +161,9 @@ def event_details(request, name):
     return render(request, 'event_details.html', context)
 
 
+@require_authentication
+@require_staff_status("I'm sorry, you do not have permissions")
 def rooms(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not request.user.is_staff:
-        messages.error(request, f"I'm sorry, you do not have permissions")
-        return redirect('home')
-
     user = request.user
     rooms = get_rooms()
     context = {
@@ -176,14 +174,9 @@ def rooms(request):
     return render(request, 'rooms.html', context)
 
 
+@require_authentication
+@require_staff_status("I'm sorry, you do not have permissions to add rooms")
 def add_room(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not request.user.is_staff:
-        messages.error(request, f"I'm sorry, you do not have permissions to add rooms")
-        return redirect('home')
-
     if request.method == 'POST':
         form = FormRoom(request.POST)
         if form.is_valid():
@@ -208,14 +201,9 @@ def add_room(request):
     return render(request, 'add_room.html', context)
 
 
+@require_authentication
+@require_staff_status("I'm sorry, you do not have permissions to add events")
 def add_event(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not request.user.is_staff:
-        messages.error(request, f"I'm sorry, you do not have permissions to add events")
-        return redirect('home')
-
     if request.method == 'POST':
         form = FormEvent(request.POST)
         if form.is_valid():
